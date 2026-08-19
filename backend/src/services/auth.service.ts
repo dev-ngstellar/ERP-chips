@@ -7,18 +7,30 @@ const JWT_SECRET = process.env.JWT_SECRET || 'chips_erp_super_secret_jwt_key_202
 
 export class AuthService {
   static async login(email: string, password: string) {
+    const cleanEmail = email.toLowerCase().trim();
+    console.log(`[AUTH] Login attempt email=${cleanEmail}`);
+
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+      where: { email: cleanEmail },
     });
 
-    if (!user || !user.isActive) {
+    if (!user) {
+      console.warn(`[AUTH] Login failed reason=USER_NOT_FOUND email=${cleanEmail}`);
+      throw new ApiError(401, 'Invalid email or password');
+    }
+
+    if (!user.isActive) {
+      console.warn(`[AUTH] Login failed reason=USER_INACTIVE email=${cleanEmail}`);
       throw new ApiError(401, 'Invalid email or password');
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
+      console.warn(`[AUTH] Login failed reason=INVALID_CREDENTIALS email=${cleanEmail}`);
       throw new ApiError(401, 'Invalid email or password');
     }
+
+    console.log(`[AUTH] Login success userId=${user.id} role=${user.role}`);
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },

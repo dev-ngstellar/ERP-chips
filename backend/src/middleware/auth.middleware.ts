@@ -24,6 +24,7 @@ export async function authenticate(
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.warn('[AUTH] Token missing or invalid');
       return next(new ApiError(401, 'Authentication token missing or invalid'));
     }
 
@@ -35,13 +36,20 @@ export async function authenticate(
       select: { id: true, email: true, fullName: true, role: true, isActive: true },
     });
 
-    if (!user || !user.isActive) {
+    if (!user) {
+      console.warn(`[AUTH] Token rejected reason=USER_NOT_FOUND userId=${decoded.id}`);
+      return next(new ApiError(401, 'User account is inactive or not found'));
+    }
+
+    if (!user.isActive) {
+      console.warn(`[AUTH] Token rejected reason=USER_INACTIVE userId=${decoded.id}`);
       return next(new ApiError(401, 'User account is inactive or not found'));
     }
 
     req.user = user;
     next();
   } catch (error) {
+    console.warn('[AUTH] Token rejected reason=TOKEN_EXPIRED_OR_INVALID');
     return next(new ApiError(401, 'Invalid or expired token'));
   }
 }

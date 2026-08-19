@@ -9,6 +9,7 @@ const app = express();
 // Global Middleware
 app.use(requestLogger);
 const allowedOrigins = [
+  'http://erp.ngstellar.com',
   'https://erp.ngstellar.com',
   'http://localhost:5173',
   'http://localhost:3000',
@@ -18,15 +19,15 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, postman) or matching allowed origins
+      // Allow requests with no origin (like mobile apps, curl, server-to-server) or matching allowed origins
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(null, true);
+        callback(new Error(`CORS blocked for origin: ${origin}`));
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
