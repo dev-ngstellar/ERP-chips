@@ -15,7 +15,7 @@ export class PurchaseController {
 
   static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const data = await PurchaseService.getPurchaseById(req.params.id);
+      const data = await PurchaseService.getPurchaseById(String(req.params.id));
       return sendSuccess(res, data, 'Purchase details retrieved');
     } catch (err) {
       next(err);

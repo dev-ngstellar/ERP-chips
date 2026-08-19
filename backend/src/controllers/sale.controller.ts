@@ -15,7 +15,7 @@ export class SaleController {
 
   static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const data = await SaleService.getSaleById(req.params.id);
+      const data = await SaleService.getSaleById(String(req.params.id));
       return sendSuccess(res, data, 'Sale invoice details retrieved');
     } catch (err) {
       next(err);

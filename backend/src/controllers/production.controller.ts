@@ -15,7 +15,7 @@ export class ProductionController {
 
   static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const data = await ProductionService.getBatchById(req.params.id);
+      const data = await ProductionService.getBatchById(String(req.params.id));
       return sendSuccess(res, data, 'Production batch details retrieved');
     } catch (err) {
       next(err);

@@ -24,7 +24,7 @@ export class MastersController {
 
   static async updateRawMaterial(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await MastersService.updateRawMaterial(req.params.id, req.body);
+      const data = await MastersService.updateRawMaterial(String(req.params.id), req.body);
       return sendSuccess(res, data, 'Raw material updated successfully');
     } catch (err) {
       next(err);
@@ -52,7 +52,7 @@ export class MastersController {
 
   static async updateProduct(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await MastersService.updateProduct(req.params.id, req.body);
+      const data = await MastersService.updateProduct(String(req.params.id), req.body);
       return sendSuccess(res, data, 'Product updated successfully');
     } catch (err) {
       next(err);
@@ -80,7 +80,7 @@ export class MastersController {
 
   static async updateSupplier(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await MastersService.updateSupplier(req.params.id, req.body);
+      const data = await MastersService.updateSupplier(String(req.params.id), req.body);
       return sendSuccess(res, data, 'Supplier updated successfully');
     } catch (err) {
       next(err);
@@ -108,7 +108,7 @@ export class MastersController {
 
   static async updateCustomer(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await MastersService.updateCustomer(req.params.id, req.body);
+      const data = await MastersService.updateCustomer(String(req.params.id), req.body);
       return sendSuccess(res, data, 'Customer updated successfully');
     } catch (err) {
       next(err);

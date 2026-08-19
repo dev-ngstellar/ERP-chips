@@ -14,7 +14,7 @@ export class RecipeController {
 
   static async getByProduct(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await RecipeService.getRecipeByProduct(req.params.productId);
+      const data = await RecipeService.getRecipeByProduct(String(req.params.productId));
       return sendSuccess(res, data, 'Product recipe retrieved');
     } catch (err) {
       next(err);
