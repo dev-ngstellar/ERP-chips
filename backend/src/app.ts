@@ -2,10 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import routes from './routes';
 import { errorHandler } from './middleware/error.middleware';
+import { requestLogger } from './middleware/logger.middleware';
 
 const app = express();
 
 // Global Middleware
+app.use(requestLogger);
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
