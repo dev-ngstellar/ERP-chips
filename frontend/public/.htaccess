@@ -1,0 +1,30 @@
+Options -MultiViews
+
+RewriteEngine On
+
+# --------------------------------------------------
+# Preserve Authorization header for API requests
+# --------------------------------------------------
+
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# --------------------------------------------------
+# Never rewrite existing files
+# --------------------------------------------------
+
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# --------------------------------------------------
+# Never rewrite existing directories
+# --------------------------------------------------
+
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# --------------------------------------------------
+# React/Vite SPA fallback
+# All frontend routes must load index.html
+# --------------------------------------------------
+
+RewriteRule ^ index.html [L]

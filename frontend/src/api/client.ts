@@ -2,7 +2,7 @@ import axios from 'axios';
 import { message } from 'antd';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://37.27.189.85:5005/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://api.erp.ngstellar.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
