@@ -1,0 +1,24 @@
+# Backend dependencies
+node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+
+# SQLite & local databases
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/

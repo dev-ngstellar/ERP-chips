@@ -1,0 +1,263 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  role         String    @default("ADMIN") // ADMIN, PRODUCTION_STORE, SALES
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  purchases    Purchase[]
+  productions  ProductionBatch[]
+  sales        Sale[]
+  expenses     Expense[]
+  stockLogs    StockMovement[]
+}
+
+model RawMaterial {
+  id              String         @id @default(uuid())
+  materialName    String
+  materialCode    String         @unique
+  category        String         // Agro Products, Oils & Fats, Spices, Packaging
+  unit            String         @default("KG") // KG, GRAM, LITER, ML, NOS, BOX, PACKET
+  minStockLevel   Float          @default(0)
+  currentStock    Float          @default(0)
+  standardCost    Float          @default(0)
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  purchaseItems   PurchaseItem[]
+  recipeItems     RecipeItem[]
+  consumptions    ProductionConsumption[]
+  stockMovements  StockMovement[]
+
+  @@index([materialCode])
+}
+
+model Product {
+  id                String            @id @default(uuid())
+  productName       String
+  sku               String            @unique
+  category          String            // Potato Chips, Extruded Snacks, Namkeen
+  packSize          String            // 100g, 200g, 500g, 1kg
+  unit              String            @default("PACKET")
+  sellingPrice      Float
+  currentStock      Float             @default(0)
+  minStockLevel     Float             @default(0)
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  recipes           Recipe[]
+  productionBatches ProductionBatch[]
+  saleItems         SaleItem[]
+  stockMovements    StockMovement[]
+
+  @@index([sku])
+}
+
+model Supplier {
+  id             String     @id @default(uuid())
+  supplierName   String
+  contactPerson  String?
+  mobileNumber   String
+  gstNumber      String?
+  address        String?
+  openingBalance Float      @default(0)
+  currentBalance Float      @default(0)
+  isActive       Boolean    @default(true)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  purchases      Purchase[]
+}
+
+model Customer {
+  id             String       @id @default(uuid())
+  customerName   String
+  customerType   String       @default("RETAILER") // DISTRIBUTOR, RETAILER, SUPERMARKET, DIRECT_CUSTOMER
+  contactPerson  String?
+  mobileNumber   String
+  gstNumber      String?
+  address        String?
+  creditLimit    Float        @default(0)
+  openingBalance Float        @default(0)
+  currentBalance Float        @default(0)
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  sales          Sale[]
+}
+
+model Purchase {
+  id             String         @id @default(uuid())
+  purchaseNumber String         @unique // e.g., "PUR-202608-0001"
+  supplierId     String
+  supplier       Supplier       @relation(fields: [supplierId], references: [id])
+  purchaseDate   DateTime       @default(now())
+  invoiceNumber  String?
+  totalAmount    Float
+  paidAmount     Float          @default(0)
+  notes          String?
+  createdById    String
+  createdBy      User           @relation(fields: [createdById], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  items          PurchaseItem[]
+  stockMovements StockMovement[]
+
+  @@index([purchaseDate])
+}
+
+model PurchaseItem {
+  id            String       @id @default(uuid())
+  purchaseId    String
+  purchase      Purchase     @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  rawMaterialId String
+  rawMaterial   RawMaterial  @relation(fields: [rawMaterialId], references: [id])
+  quantity      Float
+  unitPrice     Float
+  totalPrice    Float
+}
+
+model Recipe {
+  id           String       @id @default(uuid())
+  recipeName   String
+  productId    String
+  product      Product      @relation(fields: [productId], references: [id])
+  outputYield  Float        @default(1) // yield in product units (e.g. 100 packets)
+  notes        String?
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  items        RecipeItem[]
+}
+
+model RecipeItem {
+  id            String       @id @default(uuid())
+  recipeId      String
+  recipe        Recipe       @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  rawMaterialId String
+  rawMaterial   RawMaterial  @relation(fields: [rawMaterialId], references: [id])
+  quantity      Float
+}
+
+model ProductionBatch {
+  id              String                  @id @default(uuid())
+  batchNumber     String                  @unique // e.g., "BATCH-202608-0001"
+  productId       String
+  product         Product                 @relation(fields: [productId], references: [id])
+  plannedOutput   Float
+  actualOutput    Float
+  wastageQuantity Float                   @default(0)
+  productionDate  DateTime                @default(now())
+  notes           String?
+  createdById     String
+  createdBy       User                    @relation(fields: [createdById], references: [id])
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  consumptions    ProductionConsumption[]
+  stockMovements  StockMovement[]
+
+  @@index([productionDate])
+}
+
+model ProductionConsumption {
+  id                String          @id @default(uuid())
+  productionBatchId String
+  productionBatch   ProductionBatch @relation(fields: [productionBatchId], references: [id], onDelete: Cascade)
+  rawMaterialId     String
+  rawMaterial       RawMaterial     @relation(fields: [rawMaterialId], references: [id])
+  quantityConsumed  Float
+}
+
+model Sale {
+  id             String         @id @default(uuid())
+  invoiceNumber  String         @unique // e.g., "INV-202608-0001"
+  customerId     String
+  customer       Customer       @relation(fields: [customerId], references: [id])
+  saleDate       DateTime       @default(now())
+  totalAmount    Float
+  paidAmount     Float          @default(0)
+  notes          String?
+  createdById    String
+  createdBy      User           @relation(fields: [createdById], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  items          SaleItem[]
+  stockMovements StockMovement[]
+
+  @@index([saleDate])
+}
+
+model SaleItem {
+  id         String   @id @default(uuid())
+  saleId     String
+  sale       Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Float
+  unitPrice  Float
+  totalPrice Float
+}
+
+model StockMovement {
+  id                String           @id @default(uuid())
+  movementDate      DateTime         @default(now())
+  stockType         String           // RAW_MATERIAL or FINISHED_GOOD
+  movementType      String           // STOCK_IN or STOCK_OUT
+  referenceType     String           // PURCHASE, PRODUCTION_CONSUMPTION, PRODUCTION_OUTPUT, SALE, MANUAL_ADJUSTMENT
+  rawMaterialId     String?
+  rawMaterial       RawMaterial?     @relation(fields: [rawMaterialId], references: [id])
+  productId         String?
+  product           Product?         @relation(fields: [productId], references: [id])
+  quantity          Float
+  unitPrice         Float?
+  balanceAfter      Float
+  purchaseId        String?
+  purchase          Purchase?        @relation(fields: [purchaseId], references: [id])
+  productionBatchId String?
+  productionBatch   ProductionBatch? @relation(fields: [productionBatchId], references: [id])
+  saleId            String?
+  sale              Sale?            @relation(fields: [saleId], references: [id])
+  notes             String?
+  createdById       String?
+  createdBy         User?            @relation(fields: [createdById], references: [id])
+  createdAt         DateTime         @default(now())
+
+  @@index([rawMaterialId, movementDate])
+  @@index([productId, movementDate])
+  @@index([referenceType])
+}
+
+model Expense {
+  id          String          @id @default(uuid())
+  expenseDate DateTime        @default(now())
+  category    String          // FACTORY_RENT, ELECTRICITY_POWER, LABOR_WAGES, FUEL_GAS, PACKAGING_MATERIAL, MAINTENANCE, LOGISTICS_TRANSPORT, OTHER
+  title       String
+  amount      Float
+  paymentMode String          @default("CASH") // CASH, BANK_TRANSFER, UPI, CHEQUE
+  notes       String?
+  createdById String
+  createdBy   User            @relation(fields: [createdById], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([expenseDate])
+}
